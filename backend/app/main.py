@@ -1,11 +1,15 @@
 """AiDocTranslation FastAPI backend."""
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
-from fastapi import FastAPI, UploadFile, File
-from pydantic import BaseModel
-from typing import Dict, Any
+from fastapi import FastAPI
+
+from api.upload import router as upload_router
+from api.extract import router as extract_router
+from api.translate import router as translate_router
+from api.generate import router as generate_router
 
 app = FastAPI(
     title="AiDocTranslation",
@@ -13,89 +17,17 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# Schemas
-
-class ExtractRequest(BaseModel):
-    file_id: str
-
-
-class TranslateRequest(BaseModel):
-    fields: Dict[str, Any]
-    target_language: str
+app.include_router(upload_router)
+app.include_router(extract_router)
+app.include_router(translate_router)
+app.include_router(generate_router)
 
 
-class GenerateRequest(BaseModel):
-    translated_fields: Dict[str, Any]
-    template_id: str
-
-# Endpoints
-
-@app.get("/")
+@app.get("/", tags=["Health"])
 async def root():
-    """Root endpoint."""
-    return {"status": "ok", "service": "AiDocTranslation", "message": "Service is running"}
-
-@app.post("/upload", tags=["upload"])
-async def upload_document(file: UploadFile = File(...)):
-    """Upload document endpoint."""
-    
-    # TODO: сохранить файл и вернуть file_id
+    """Health check endpoint."""
     return {
-        "status": "ok",
-        "file_id": "mock_file_id",
-        "filename": file.filename
-    }
-
-
-@app.post("/extract-fields", tags=["extract-fields"])
-async def extract_fields(request: ExtractRequest):
-    """Extract fields from document."""
-    
-    # TODO: вызвать OCR (Azure)
-    return {
-        "status": "ok",
-        "file_id": request.file_id,
-        "fields": {
-            "surname_latin": "AITENOV",
-            "given_names_latin": "TOLEBI",
-            "passport_number": "N1234567"
-        }
-    }
-
-
-@app.post("/translate-fields", tags=["translate-fields"])
-async def translate_fields(request: TranslateRequest):
-    """Translate extracted fields."""
-    
-    # TODO: вызвать GPT
-    return {
-        "status": "ok",
-        "translated_fields": {
-            "surname_translated": "Айтенов",
-            "given_names_translated": "Толеби"
-        }
-    }
-
-
-@app.post("/generate-document", tags=["generate-document"])
-async def generate_document(request: GenerateRequest):
-    """Generate DOCX document."""
-    
-    # TODO: docxtpl
-    return {
-        "status": "ok",
-        "document_id": "mock_doc_id",
-        "download_url": "/download/mock_doc_id"
-    }
-
-
-@app.get("/download/{document_id}", tags=["download-document"])
-async def download_document(document_id: str):
-    """Download generated document."""
-    
-    # TODO: вернуть файл
-    return {
-        "status": "ok",
-        "document_id": document_id,
-        "message": "Document ready for download"
+        "status": "running",
+        "service": "AiDocTranslation",
+        "version": "0.1.0",
     }
