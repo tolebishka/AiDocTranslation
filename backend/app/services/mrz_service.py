@@ -29,7 +29,32 @@ def extract_mrz_lines(raw_text: str) -> Optional[tuple[str, str]]:
     return None
 
 
-def format_mrz_date(date_str: str) -> str:
+def format_mrz_date(date_str: str, date_kind: str = "generic") -> str:
+    """
+    Convert YYMMDD to YYYY-MM-DD.
+
+    date_kind:
+    - "birth": interpret future years as 1900s when needed
+    - "expiry": interpret near-future years as 2000s
+    - "generic": fallback heuristic
+    """
+    if len(date_str) != 6 or not date_str.isdigit():
+        return date_str
+
+    yy = int(date_str[:2])
+    mm = date_str[2:4]
+    dd = date_str[4:6]
+
+    if date_kind == "birth":
+        # Birth dates are almost always in the past
+        year = 2000 + yy if yy <= 29 else 1900 + yy
+    elif date_kind == "expiry":
+        # Expiry dates for modern passports are almost always current/future
+        year = 2000 + yy
+    else:
+        year = 2000 + yy if yy <= 29 else 1900 + yy
+
+    return f"{year:04d}-{mm}-{dd}"
     """
     Convert YYMMDD to YYYY-MM-DD.
     Simple heuristic:
@@ -155,9 +180,9 @@ def parse_td3_mrz(line1: str, line2: str) -> dict:
         "given_names_latin": given_names_latin,
         "passport_number": passport_number,
         "nationality": nationality,
-        "date_of_birth": format_mrz_date(birth_date_raw),
+        "date_of_birth": format_mrz_date(birth_date_raw, "birth"),
         "sex": sex,
-        "date_of_expiry": format_mrz_date(expiry_date_raw),
+        "date_of_expiry": format_mrz_date(expiry_date_raw, "expiry"),
         "optional_data": optional_data.replace("<", "").strip(),
         "mrz_line_1": line1,
         "mrz_line_2": line2,
