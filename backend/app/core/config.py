@@ -1,10 +1,13 @@
 """Application configuration."""
 
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# backend/app/.env — не зависит от cwd при запуске uvicorn
+_APP_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(_APP_ROOT / ".env")
 
 
 def get_env(key: str, default: str | None = None) -> str | None:
