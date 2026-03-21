@@ -10,6 +10,10 @@ venv/
 # Credentials (never commit)
 **/aidoc.json
 
+# Node / frontend
+node_modules/
+dist/
+
 # IDE
 .idea/
 .vscode/
