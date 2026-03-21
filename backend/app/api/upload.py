@@ -15,5 +15,11 @@ async def upload_document(file: UploadFile = File(...)):
         "status": "ok",
         "service": "AiDocTranslation",
         "message": "Document uploaded successfully",
+        "file_id": saved_file["file_id"],
+        "filename": saved_file["filename"],
+        "stored_as": saved_file["stored_as"],
+        "file_path": saved_file["file_path"],
+        "content_type": saved_file["content_type"],
+        "size_bytes": saved_file["size_bytes"],
         **saved_file,
     }

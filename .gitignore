@@ -7,8 +7,12 @@ uploads/
 venv/
 .env
 
+# Credentials (never commit)
+**/aidoc.json
+
 # IDE
 .idea/
 .vscode/
+.credentials/
 *.swp
 *.swo
