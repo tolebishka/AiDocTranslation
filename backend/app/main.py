@@ -10,6 +10,7 @@ from api.upload import router as upload_router
 from api.extract import router as extract_router
 from api.translate import router as translate_router
 from api.generate import router as generate_router
+from api.process import router as process_router
 
 app = FastAPI(
     title="AiDocTranslation",
@@ -21,6 +22,7 @@ app.include_router(upload_router)
 app.include_router(extract_router)
 app.include_router(translate_router)
 app.include_router(generate_router)
+app.include_router(process_router)
 
 
 @app.get("/", tags=["Health"])
