@@ -42,6 +42,33 @@ export type UploadResponse = {
   [key: string]: unknown;
 };
 
+/** TD3 MRZ parse + check-digit validation from backend */
+export type MrzValidations = {
+  passport_number_valid?: boolean;
+  birth_date_valid?: boolean;
+  expiry_date_valid?: boolean;
+  optional_data_valid?: boolean;
+  final_check_valid?: boolean;
+};
+
+export type MrzFields = {
+  mrz_type?: string;
+  document_type?: string | null;
+  issuing_country?: string | null;
+  surname_latin?: string | null;
+  given_names_latin?: string | null;
+  passport_number?: string | null;
+  nationality?: string | null;
+  date_of_birth?: string | null;
+  sex?: string | null;
+  date_of_expiry?: string | null;
+  optional_data?: string | null;
+  mrz_line_1?: string | null;
+  mrz_line_2?: string | null;
+  validations?: MrzValidations;
+  [key: string]: unknown;
+};
+
 export type ProcessDocumentResponse = {
   status: string;
   service?: string;
@@ -49,7 +76,7 @@ export type ProcessDocumentResponse = {
   file_id: string;
   passport_data: PassportData;
   translated_passport_data: TranslatedPassportData;
-  mrz_fields?: unknown;
+  mrz_fields?: MrzFields | null;
   ocr_text?: string;
 };
 

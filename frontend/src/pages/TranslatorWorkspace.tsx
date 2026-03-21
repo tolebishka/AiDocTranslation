@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { UploadCard } from "../components/UploadCard";
 import { ImagePreviewCard } from "../components/ImagePreviewCard";
+import { MrzReviewCard } from "../components/MrzReviewCard";
 import { PassportDataTable } from "../components/PassportDataTable";
 import { getApiBaseUrl, processDocument, uploadPassportImage } from "../lib/api";
 import { buildPassportTableRows } from "../lib/fieldMapping";
@@ -96,14 +97,14 @@ export function TranslatorWorkspace() {
                 AiDocTranslation
               </h1>
               <p className="mt-0.5 text-sm text-slate-600 sm:text-[15px]">
-                Upload a passport · review OCR · correct translations
+                Upload a passport · verify MRZ · review fields · correct translations
               </p>
             </div>
             <p className="text-[11px] text-slate-400">
-              API{" "}
-              <code className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono">
-                {getApiBaseUrl()}
-              </code>
+              {/* API{" "} */}
+              {/* <code className="rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-mono"> */}
+                {/* {getApiBaseUrl()} */}
+              {/* </code> */}
             </p>
           </div>
         </div>
@@ -173,6 +174,8 @@ export function TranslatorWorkspace() {
                 </p>
               </div>
             ) : null}
+
+            <MrzReviewCard mrz={result?.mrz_fields} hasProcessed={Boolean(result)} />
 
             <PassportDataTable rows={tableRows} resetKey={tableResetKey} />
           </div>
