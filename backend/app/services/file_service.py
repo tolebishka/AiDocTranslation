@@ -6,6 +6,7 @@ import uuid
 
 from fastapi import UploadFile
 
+from core.config import UPLOAD_DIR, UPLOAD_TTL_SECONDS
 from core.upload_config import MAX_FILE_SIZE_BYTES
 from services.upload_validator import (
     UploadValidationError,
@@ -16,8 +17,6 @@ from services.upload_validator import (
     validate_size,
 )
 
-UPLOAD_DIR = "storage/uploads"
-TTL_SECONDS = 600
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 CHUNK_SIZE = 8192
 
@@ -97,7 +96,7 @@ def cleanup_old_files():
 
         try:
             modified_time = os.path.getmtime(file_path)
-            if now - modified_time > TTL_SECONDS:
+            if now - modified_time > UPLOAD_TTL_SECONDS:
                 os.remove(file_path)
         except Exception:
             continue

@@ -1,9 +1,12 @@
-import type { MrzFields, MrzValidations } from "../types/api";
-import { MRZ_PARSED_FIELDS, MRZ_VALIDATION_ITEMS } from "../lib/mrzLabels";
+import type { ExtractionResult, MrzValidations } from "../types/api";
+import { CANONICAL_FIELD_DEFINITIONS } from "../lib/fieldMapping";
+import { MRZ_VALIDATION_ITEMS } from "../lib/mrzLabels";
 
 type MrzReviewCardProps = {
-  mrz: MrzFields | null | undefined;
-  /** After process, we have a result but MRZ may still be missing */
+  /** Canonical extraction; MRZ lines and parsed fields come from here */
+  extraction: ExtractionResult | null | undefined;
+  /** Check-digit validations (from raw MRZ parse, not in canonical) */
+  mrzValidations?: MrzValidations | null;
   hasProcessed: boolean;
 };
 
@@ -48,12 +51,38 @@ function ValidationRow({ label, value }: { label: string; value: boolean | undef
   );
 }
 
-export function MrzReviewCard({ mrz, hasProcessed }: MrzReviewCardProps) {
+/** Map canonical field id to extraction value (fields or top-level) */
+function getExtractionFieldValue(extraction: ExtractionResult, fieldId: string): unknown {
+  if (fieldId === "document_type") return extraction.document_type;
+  if (fieldId === "country") return extraction.country;
+  const fields = extraction.fields ?? {};
+  return fields[fieldId as keyof typeof fields];
+}
+
+/** Fields to show in MRZ parsed section (subset of canonical) */
+const MRZ_DISPLAY_FIELD_IDS = [
+  "document_type",
+  "country",
+  "surname",
+  "name",
+  "document_number",
+  "nationality",
+  "date_of_birth",
+  "sex",
+  "date_of_expiry",
+] as const;
+
+export function MrzReviewCard({ extraction, mrzValidations, hasProcessed }: MrzReviewCardProps) {
   if (!hasProcessed) {
     return null;
   }
 
-  if (!mrz || typeof mrz !== "object") {
+  const mrz = extraction?.mrz;
+  const hasMrzLines = mrz && (mrz.line1 || mrz.line2);
+  const line1 = displayValue(mrz?.line1);
+  const line2 = displayValue(mrz?.line2);
+
+  if (!extraction || (!hasMrzLines && !extraction.fields)) {
     return (
       <div className="mb-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-4 shadow-sm">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
@@ -67,9 +96,7 @@ export function MrzReviewCard({ mrz, hasProcessed }: MrzReviewCardProps) {
     );
   }
 
-  const line1 = displayValue(mrz.mrz_line_1);
-  const line2 = displayValue(mrz.mrz_line_2);
-  const validations = mrz.validations as MrzValidations | undefined;
+  const mrzType = hasMrzLines ? "TD3" : null;
 
   return (
     <div className="mb-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm">
@@ -79,27 +106,29 @@ export function MrzReviewCard({ mrz, hasProcessed }: MrzReviewCardProps) {
             MRZ review
           </h2>
           <p className="text-[12px] text-slate-500">
-            Raw lines · parsed MRZ · ICAO check digits
+            Raw lines · parsed fields · ICAO check digits
           </p>
         </div>
-        {mrz.mrz_type ? (
+        {mrzType ? (
           <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-600">
-            {String(mrz.mrz_type)}
+            {mrzType}
           </span>
         ) : null}
       </div>
 
-      <div className="mt-3 space-y-2">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-          MRZ lines
-        </p>
-        <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-900/[0.03] px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-800 break-all">
-          <div className="whitespace-pre-wrap break-all">{line1}</div>
-          <div className="mt-1 whitespace-pre-wrap break-all border-t border-slate-200/80 pt-1">
-            {line2}
+      {hasMrzLines ? (
+        <div className="mt-3 space-y-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+            MRZ lines
+          </p>
+          <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-900/[0.03] px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-800 break-all">
+            <div className="whitespace-pre-wrap break-all">{line1}</div>
+            <div className="mt-1 whitespace-pre-wrap break-all border-t border-slate-200/80 pt-1">
+              {line2}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
@@ -107,17 +136,23 @@ export function MrzReviewCard({ mrz, hasProcessed }: MrzReviewCardProps) {
             Parsed fields
           </p>
           <dl className="mt-1.5 space-y-0.5">
-            {MRZ_PARSED_FIELDS.map(({ key, label }) => (
-              <div
-                key={key}
-                className="flex gap-2 border-b border-slate-50 py-0.5 text-[11px] last:border-0"
-              >
-                <dt className="w-[40%] shrink-0 text-slate-500">{label}</dt>
-                <dd className="min-w-0 break-words font-medium text-slate-800">
-                  {displayValue((mrz as Record<string, unknown>)[key])}
-                </dd>
-              </div>
-            ))}
+            {MRZ_DISPLAY_FIELD_IDS.map((fieldId) => {
+              const def = CANONICAL_FIELD_DEFINITIONS.find((d) => d.id === fieldId);
+              const value = getExtractionFieldValue(extraction, fieldId);
+              return (
+                <div
+                  key={fieldId}
+                  className="flex gap-2 border-b border-slate-50 py-0.5 text-[11px] last:border-0"
+                >
+                  <dt className="w-[40%] shrink-0 text-slate-500">
+                    {def?.label ?? fieldId}
+                  </dt>
+                  <dd className="min-w-0 break-words font-medium text-slate-800">
+                    {displayValue(value)}
+                  </dd>
+                </div>
+              );
+            })}
           </dl>
         </div>
 
@@ -130,7 +165,7 @@ export function MrzReviewCard({ mrz, hasProcessed }: MrzReviewCardProps) {
               <ValidationRow
                 key={key}
                 label={label}
-                value={validations?.[key]}
+                value={mrzValidations?.[key as keyof MrzValidations]}
               />
             ))}
           </div>

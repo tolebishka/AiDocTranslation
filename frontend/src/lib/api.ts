@@ -3,11 +3,14 @@ import type {
   UploadResponse,
 } from "../types/api";
 
-const DEFAULT_BASE = "http://127.0.0.1:8000";
+/** Dev fallback when VITE_API_BASE_URL is unset. Production must set env. */
+const DEV_API_BASE = "http://127.0.0.1:8000";
 
 export function getApiBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_API_BASE_URL?.trim();
-  return fromEnv && fromEnv.length > 0 ? fromEnv.replace(/\/$/, "") : DEFAULT_BASE;
+  return fromEnv && fromEnv.length > 0
+    ? fromEnv.replace(/\/$/, "")
+    : DEV_API_BASE;
 }
 
 function joinUrl(path: string): string {

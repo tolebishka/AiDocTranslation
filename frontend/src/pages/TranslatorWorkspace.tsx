@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { UploadCard } from "../components/UploadCard";
 import { ImagePreviewCard } from "../components/ImagePreviewCard";
 import { MrzReviewCard } from "../components/MrzReviewCard";
 import { PassportDataTable } from "../components/PassportDataTable";
-import { getApiBaseUrl, processDocument, uploadPassportImage } from "../lib/api";
-import { buildPassportTableRows } from "../lib/fieldMapping";
+import { processDocument, uploadPassportImage } from "../lib/api";
+import { buildExtractionTableRows } from "../lib/fieldMapping";
 import type { ProcessDocumentResponse } from "../types/api";
 
 const LANGUAGES = [
@@ -50,11 +51,10 @@ export function TranslatorWorkspace() {
   }, [file]);
 
   const tableRows = useMemo(() => {
-    if (!result?.passport_data || !result?.translated_passport_data) return [];
-    return buildPassportTableRows(
-      result.passport_data,
-      result.translated_passport_data
-    );
+    const extraction = result?.extraction;
+    const translated = result?.translated_passport_data;
+    if (!extraction?.fields || !translated) return [];
+    return buildExtractionTableRows(extraction, translated);
   }, [result]);
 
   const tableResetKey = result?.file_id ?? null;
@@ -157,6 +157,17 @@ export function TranslatorWorkspace() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-6">
           <div className="flex min-w-0 flex-col gap-3 lg:max-w-md xl:max-w-none">
             <UploadCard onFileSelect={handleFileSelect} disabled={loading} />
+            <aside
+              className="rounded-lg border border-slate-200/80 bg-amber-50/50 px-3 py-2.5 text-xs text-slate-600"
+              aria-label="Usage notice"
+            >
+              <p className="font-medium text-slate-700">Before you upload</p>
+              <ul className="mt-1 list-inside list-disc space-y-0.5 text-[11px] leading-relaxed">
+                <li>Files are processed temporarily and auto-deleted</li>
+                <li>Review all extracted or translated data before using it</li>
+                <li>Only upload documents you are authorized to use</li>
+              </ul>
+            </aside>
             <ImagePreviewCard
               previewUrl={previewUrl}
               fileName={file?.name ?? null}
@@ -177,9 +188,23 @@ export function TranslatorWorkspace() {
 
             <PassportDataTable rows={tableRows} resetKey={tableResetKey} />
 
-            <MrzReviewCard mrz={result?.mrz_fields} hasProcessed={Boolean(result)} />
+            <MrzReviewCard
+              extraction={result?.extraction}
+              mrzValidations={result?.mrz_fields?.validations}
+              hasProcessed={Boolean(result)}
+            />
           </div>
         </div>
+
+        <footer className="mt-8 border-t border-slate-200 pt-4 text-center text-xs text-slate-400">
+          <Link to="/privacy" className="hover:text-slate-600">
+            Privacy Policy
+          </Link>
+          <span className="mx-2">·</span>
+          <Link to="/terms" className="hover:text-slate-600">
+            Terms of Use
+          </Link>
+        </footer>
       </main>
     </div>
   );

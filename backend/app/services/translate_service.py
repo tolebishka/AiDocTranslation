@@ -20,6 +20,7 @@ TRANSLATION_SCHEMA = {
             "issuing_country_translated": {"type": ["string", "null"]},
             "surname_translated": {"type": ["string", "null"]},
             "given_names_translated": {"type": ["string", "null"]},
+            "fathers_name_translated": {"type": ["string", "null"]},
             "passport_number": {"type": ["string", "null"]},
             "nationality_translated": {"type": ["string", "null"]},
             "date_of_birth": {"type": ["string", "null"]},
@@ -35,6 +36,7 @@ TRANSLATION_SCHEMA = {
             "issuing_country_translated",
             "surname_translated",
             "given_names_translated",
+            "fathers_name_translated",
             "passport_number",
             "nationality_translated",
             "date_of_birth",
@@ -86,6 +88,7 @@ Rules:
   - issuing_country example: "India" -> "Индия"
   - nationality example: "IND" / "Indian" -> "Гражданин Индии" or a natural official equivalent.
 - Personal names should be transliterated naturally if the target language uses another script.
+- fathers_name (patronymic) if present should be translated/transliterated accordingly.
 "Distinguish between issuing country and nationality. "
 "Issuing country is the country name. "
 "Nationality must be translated as a citizenship/nationality expression appropriate for the target language."

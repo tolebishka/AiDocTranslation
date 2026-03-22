@@ -1,9 +1,10 @@
-/** Passport fields from OCR / MRZ pipeline */
+/** Passport fields from OCR / MRZ pipeline (legacy shape from canonical) */
 export type PassportData = {
   document_type?: string | null;
   issuing_country?: string | null;
   surname_latin?: string | null;
   given_names_latin?: string | null;
+  fathers_name?: string | null;
   passport_number?: string | null;
   nationality?: string | null;
   date_of_birth?: string | null;
@@ -22,6 +23,7 @@ export type TranslatedPassportData = {
   issuing_country_translated?: string | null;
   surname_translated?: string | null;
   given_names_translated?: string | null;
+  fathers_name_translated?: string | null;
   passport_number?: string | null;
   nationality_translated?: string | null;
   date_of_birth?: string | null;
@@ -32,6 +34,38 @@ export type TranslatedPassportData = {
   date_of_expiry?: string | null;
   issuing_authority_translated?: string | null;
   [key: string]: unknown;
+};
+
+/** Canonical extraction result from backend */
+export type ExtractionFields = {
+  surname?: string | null;
+  name?: string | null;
+  fathers_name?: string | null;
+  document_number?: string | null;
+  nationality?: string | null;
+  date_of_birth?: string | null;
+  sex?: string | null;
+  place_of_birth?: string | null;
+  place_of_issue?: string | null;
+  date_of_issue?: string | null;
+  date_of_expiry?: string | null;
+  issuing_authority?: string | null;
+};
+
+export type MrzBlock = {
+  line1?: string | null;
+  line2?: string | null;
+};
+
+export type ExtractionResult = {
+  country?: string | null;
+  document_type?: string | null;
+  side?: string;
+  fields: ExtractionFields;
+  mrz: MrzBlock;
+  raw_text?: string | null;
+  warnings?: string[];
+  confidence?: Record<string, unknown>;
 };
 
 export type UploadResponse = {
@@ -74,6 +108,7 @@ export type ProcessDocumentResponse = {
   service?: string;
   message?: string;
   file_id: string;
+  extraction?: ExtractionResult;
   passport_data: PassportData;
   translated_passport_data: TranslatedPassportData;
   mrz_fields?: MrzFields | null;

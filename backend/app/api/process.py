@@ -1,16 +1,22 @@
 """Full document processing API routes."""
 
+import logging
+import time
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from core.errors import AppError
+from core.logging_config import safe_log
+from services.extraction_adapters import extraction_to_legacy_passport
+from services.extraction_service import build_extraction_result
 from services.file_service import cleanup_old_files, delete_file, get_file_path
 from services.ocr_service import extract_text_from_document
 from services.mrz_service import parse_mrz_from_text
-from services.passport_service import build_passport_data
 from services.translate_service import translate_passport_data
 
 router = APIRouter(prefix="/process-document", tags=["Processing"])
+logger = logging.getLogger(__name__)
 
 
 class ProcessDocumentRequest(BaseModel):
@@ -20,7 +26,8 @@ class ProcessDocumentRequest(BaseModel):
 
 @router.post("/")
 async def process_document(request: ProcessDocumentRequest):
-    """Run full pipeline: OCR -> MRZ -> passport_data -> translation."""
+    """Run full pipeline: OCR -> MRZ -> canonical extraction -> translation."""
+    t0 = time.perf_counter()
     file_path = get_file_path(request.file_id)
 
     if not file_path:
@@ -40,11 +47,22 @@ async def process_document(request: ProcessDocumentRequest):
                 422,
             )
 
-        passport_data = build_passport_data(mrz_fields, raw_text)
+        extraction = build_extraction_result(mrz_fields, raw_text)
+        passport_data = extraction_to_legacy_passport(extraction)
 
         translated_passport_data = translate_passport_data(
             passport_data=passport_data,
             target_language=request.target_language,
+        )
+
+        duration_ms = (time.perf_counter() - t0) * 1000
+        safe_log(
+            logger,
+            logging.INFO,
+            "Process success",
+            endpoint="/process-document/",
+            duration_ms=duration_ms,
+            status="ok",
         )
 
         return {
@@ -52,6 +70,7 @@ async def process_document(request: ProcessDocumentRequest):
             "service": "AiDocTranslation",
             "message": "Document processed successfully",
             "file_id": request.file_id,
+            "extraction": extraction.model_dump(mode="json"),
             "passport_data": passport_data,
             "translated_passport_data": translated_passport_data,
             "mrz_fields": mrz_fields,
