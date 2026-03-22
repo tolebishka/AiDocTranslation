@@ -18,7 +18,8 @@ function joinUrl(path: string): string {
 
 async function readErrorMessage(res: Response): Promise<string> {
   try {
-    const data = (await res.json()) as { detail?: unknown };
+    const data = (await res.json()) as { message?: string; detail?: unknown };
+    if (typeof data.message === "string") return data.message;
     const d = data.detail;
     if (typeof d === "string") return d;
     if (Array.isArray(d) && d[0]?.msg) return String(d[0].msg);

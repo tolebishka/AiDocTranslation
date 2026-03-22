@@ -2,7 +2,7 @@
 
 from typing import Any, Dict
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 from services.translate_service import translate_passport_data
@@ -18,19 +18,14 @@ class TranslateRequest(BaseModel):
 @router.post("/")
 async def translate_fields(request: TranslateRequest):
     """Translate structured passport data."""
-    try:
-        translated_passport_data = translate_passport_data(
-            passport_data=request.passport_data,
-            target_language=request.target_language,
-        )
-
-        return {
-            "status": "ok",
-            "service": "AiDocTranslation",
-            "message": "Passport data translated successfully",
-            "target_language": request.target_language,
-            "translated_passport_data": translated_passport_data,
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    translated_passport_data = translate_passport_data(
+        passport_data=request.passport_data,
+        target_language=request.target_language,
+    )
+    return {
+        "status": "ok",
+        "service": "AiDocTranslation",
+        "message": "Passport data translated successfully",
+        "target_language": request.target_language,
+        "translated_passport_data": translated_passport_data,
+    }

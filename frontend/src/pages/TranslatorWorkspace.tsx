@@ -175,9 +175,9 @@ export function TranslatorWorkspace() {
               </div>
             ) : null}
 
-            <MrzReviewCard mrz={result?.mrz_fields} hasProcessed={Boolean(result)} />
-
             <PassportDataTable rows={tableRows} resetKey={tableResetKey} />
+
+            <MrzReviewCard mrz={result?.mrz_fields} hasProcessed={Boolean(result)} />
           </div>
         </div>
       </main>
