@@ -1,12 +1,12 @@
 """Extraction service producing canonical schema from MRZ + OCR."""
 
-from schemas.canonical import (
+from backend.schemas.canonical import (
     ExtractionFields,
     ExtractionResult,
     MrzBlock,
 )
-from services.name_normalizer import split_name_and_patronymic
-from services.passport_service import (
+from backend.services.name_normalizer import split_name_and_patronymic
+from backend.services.passport_service import (
     extract_date_of_issue,
     extract_issuing_authority,
     extract_place_of_birth,

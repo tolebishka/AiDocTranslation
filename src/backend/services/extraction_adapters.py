@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from schemas.canonical import ExtractionResult
+from backend.schemas.canonical import ExtractionResult
 
 
 def extraction_to_legacy_passport(extraction: ExtractionResult) -> dict[str, Any]:

@@ -3,11 +3,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from services.extraction_adapters import extraction_to_legacy_passport
-from services.extraction_service import build_extraction_result
-from services.file_service import get_file_path
-from services.ocr_service import extract_text_from_document
-from services.mrz_service import parse_mrz_from_text
+from backend.services.extraction_adapters import extraction_to_legacy_passport
+from backend.services.extraction_service import build_extraction_result
+from backend.services.file_service import get_file_path
+from backend.services.ocr_service import extract_text_from_document
+from backend.services.mrz_service import parse_mrz_from_text
 
 router = APIRouter(prefix="/extract-fields", tags=["Extraction"])
 

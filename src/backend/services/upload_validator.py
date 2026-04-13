@@ -3,7 +3,7 @@
 import re
 import unicodedata
 
-from core.upload_config import (
+from backend.core.upload_config import (
     ALLOWED_EXTENSIONS,
     ALLOWED_MIME_TYPES,
     EXTENSION_TO_SIGNATURE,

@@ -12,15 +12,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from api.upload import router as upload_router
-from api.extract import router as extract_router
-from api.translate import router as translate_router
-from api.generate import router as generate_router
-from api.process import router as process_router
-from core.config import CORS_ORIGINS
-from core.errors import AppError, error_response, classify_and_log
-from core.logging_config import get_request_id, safe_log, set_request_id
-from services.upload_validator import UploadValidationError
+from backend.api.upload import router as upload_router
+from backend.api.extract import router as extract_router
+from backend.api.translate import router as translate_router
+from backend.api.generate import router as generate_router
+from backend.api.process import router as process_router
+from backend.core.config import CORS_ORIGINS
+from backend.core.errors import AppError, error_response, classify_and_log
+from backend.core.logging_config import get_request_id, safe_log, set_request_id
+from backend.services.upload_validator import UploadValidationError
 
 logger = logging.getLogger(__name__)
 

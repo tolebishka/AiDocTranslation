@@ -1,1 +1,0 @@
-"""AiDocTranslation backend application."""

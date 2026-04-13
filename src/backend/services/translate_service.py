@@ -5,9 +5,16 @@ from typing import Any, Dict
 
 from openai import OpenAI
 
-from core.config import OPENAI_API_KEY
+from backend.core.config import OPENAI_API_KEY
 
-client = OpenAI(api_key=OPENAI_API_KEY)
+_client = None
+
+
+def _get_client() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=OPENAI_API_KEY)
+    return _client
 
 
 TRANSLATION_SCHEMA = {
@@ -94,7 +101,7 @@ Rules:
 "Nationality must be translated as a citizenship/nationality expression appropriate for the target language."
 """
 
-    response = client.chat.completions.create(
+    response = _get_client().chat.completions.create(
         model="gpt-5.4-mini",
         messages=[
             {"role": "system", "content": system_prompt},

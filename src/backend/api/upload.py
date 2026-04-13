@@ -5,8 +5,8 @@ import time
 
 from fastapi import APIRouter, File, UploadFile
 
-from core.logging_config import safe_log
-from services.file_service import cleanup_old_files, save_file
+from backend.core.logging_config import safe_log
+from backend.services.file_service import cleanup_old_files, save_file
 
 router = APIRouter(prefix="/upload", tags=["Upload"])
 logger = logging.getLogger(__name__)
