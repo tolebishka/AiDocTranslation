@@ -2,7 +2,7 @@
 
 import logging
 
-from core.logging_config import get_request_id, safe_log
+from backend.core.logging_config import get_request_id, safe_log
 
 logger = logging.getLogger(__name__)
 

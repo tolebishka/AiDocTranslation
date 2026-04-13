@@ -6,12 +6,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Инициализация клиента
-client = vision.ImageAnnotatorClient()
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        _client = vision.ImageAnnotatorClient()
+    return _client
 
 
 def extract_text_from_document(file_path: str):
     """Extract text from local image using Google Vision OCR."""
+    client = _get_client()
 
     with open(file_path, "rb") as image_file:
         content = image_file.read()

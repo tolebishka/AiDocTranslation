@@ -5,7 +5,7 @@ from typing import Any, Dict
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-from services.translate_service import translate_passport_data
+from backend.services.translate_service import translate_passport_data
 
 router = APIRouter(prefix="/translate-fields", tags=["Translation"])
 

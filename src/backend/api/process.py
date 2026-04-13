@@ -6,14 +6,14 @@ import time
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from core.errors import AppError
-from core.logging_config import safe_log
-from services.extraction_adapters import extraction_to_legacy_passport
-from services.extraction_service import build_extraction_result
-from services.file_service import cleanup_old_files, delete_file, get_file_path
-from services.ocr_service import extract_text_from_document
-from services.mrz_service import parse_mrz_from_text
-from services.translate_service import translate_passport_data
+from backend.core.errors import AppError
+from backend.core.logging_config import safe_log
+from backend.services.extraction_adapters import extraction_to_legacy_passport
+from backend.services.extraction_service import build_extraction_result
+from backend.services.file_service import cleanup_old_files, delete_file, get_file_path
+from backend.services.ocr_service import extract_text_from_document
+from backend.services.mrz_service import parse_mrz_from_text
+from backend.services.translate_service import translate_passport_data
 
 router = APIRouter(prefix="/process-document", tags=["Processing"])
 logger = logging.getLogger(__name__)

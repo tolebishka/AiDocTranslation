@@ -6,9 +6,9 @@ import uuid
 
 from fastapi import UploadFile
 
-from core.config import UPLOAD_DIR, UPLOAD_TTL_SECONDS
-from core.upload_config import MAX_FILE_SIZE_BYTES
-from services.upload_validator import (
+from backend.core.config import UPLOAD_DIR, UPLOAD_TTL_SECONDS
+from backend.core.upload_config import MAX_FILE_SIZE_BYTES
+from backend.services.upload_validator import (
     UploadValidationError,
     sanitize_filename,
     validate_extension,
