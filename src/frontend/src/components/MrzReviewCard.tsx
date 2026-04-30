@@ -84,13 +84,13 @@ export function MrzReviewCard({ extraction, mrzValidations, hasProcessed }: MrzR
 
   if (!extraction || (!hasMrzLines && !extraction.fields)) {
     return (
-      <div className="mb-4 rounded-xl border border-dashed border-slate-300 bg-slate-50/80 px-4 py-4 shadow-sm">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          MRZ review
+      <div className="surface-card-muted mb-4 border-dashed border-amber-200/80 px-4 py-5">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber-800/90">
+          MRZ
         </h2>
-        <p className="mt-2 text-center text-sm font-medium text-slate-600">MRZ not detected</p>
-        <p className="mt-1 text-center text-[12px] text-slate-500">
-          No machine-readable zone was found or parsed. Main fields may come from OCR only.
+        <p className="mt-2 text-center text-sm font-semibold text-slate-700">MRZ не обнаружен</p>
+        <p className="mt-1.5 text-center text-xs leading-relaxed text-slate-500">
+          Машиночитаемая зона не найдена или не распознана. Основные поля могут быть только из OCR.
         </p>
       </div>
     );
@@ -99,43 +99,43 @@ export function MrzReviewCard({ extraction, mrzValidations, hasProcessed }: MrzR
   const mrzType = hasMrzLines ? "TD3" : null;
 
   return (
-    <div className="mb-4 rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-2">
+    <div className="surface-card mb-4 p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-3">
         <div>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            MRZ review
+          <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700/90">
+            Проверка MRZ
           </h2>
-          <p className="text-[12px] text-slate-500">
-            Raw lines · parsed fields · ICAO check digits
+          <p className="mt-0.5 text-xs text-slate-500">
+            Строки MRZ · поля · контрольные цифры ICAO
           </p>
         </div>
         {mrzType ? (
-          <span className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[10px] font-semibold text-slate-600">
+          <span className="rounded-lg bg-slate-900 px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-teal-300">
             {mrzType}
           </span>
         ) : null}
       </div>
 
       {hasMrzLines ? (
-        <div className="mt-3 space-y-2">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            MRZ lines
+        <div className="mt-4 space-y-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            Строки MRZ
           </p>
-          <div className="max-w-full overflow-x-auto rounded-lg border border-slate-200 bg-slate-900/[0.03] px-2 py-1.5 font-mono text-[11px] leading-relaxed text-slate-800 break-all">
+          <div className="max-w-full overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 px-3 py-2.5 font-mono text-[11px] leading-relaxed text-teal-50/95 shadow-inner break-all ring-1 ring-black/20">
             <div className="whitespace-pre-wrap break-all">{line1}</div>
-            <div className="mt-1 whitespace-pre-wrap break-all border-t border-slate-200/80 pt-1">
+            <div className="mt-2 whitespace-pre-wrap break-all border-t border-slate-700/80 pt-2 text-slate-200">
               {line2}
             </div>
           </div>
         </div>
       ) : null}
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Parsed fields
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            Распознанные поля
           </p>
-          <dl className="mt-1.5 space-y-0.5">
+          <dl className="mt-2 space-y-0.5">
             {MRZ_DISPLAY_FIELD_IDS.map((fieldId) => {
               const def = CANONICAL_FIELD_DEFINITIONS.find((d) => d.id === fieldId);
               const value = getExtractionFieldValue(extraction, fieldId);
@@ -157,10 +157,10 @@ export function MrzReviewCard({ extraction, mrzValidations, hasProcessed }: MrzR
         </div>
 
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            Check digit validation
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+            Контрольные суммы
           </p>
-          <div className="mt-1.5 rounded-lg border border-slate-100 bg-slate-50/50 px-2 py-1">
+          <div className="mt-2 rounded-xl border border-slate-200/80 bg-slate-50/90 px-2.5 py-1.5 ring-1 ring-slate-100/80">
             {MRZ_VALIDATION_ITEMS.map(({ key, label }) => (
               <ValidationRow
                 key={key}

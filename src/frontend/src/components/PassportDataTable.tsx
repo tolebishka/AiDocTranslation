@@ -11,6 +11,9 @@ type PassportDataTableProps = {
   rows: PassportFieldRow[];
   /** When this changes (e.g. new file_id), local overrides reset */
   resetKey: string | null;
+  /** Optional notifier for parent so it can use the edited values
+   *  (e.g. to render a translated document). Keyed by row id. */
+  onOverridesChange?: (overrides: Record<string, string>) => void;
 };
 
 async function copyText(text: string): Promise<boolean> {
@@ -55,16 +58,16 @@ function RowActionButtons({
         <button
           type="button"
           onClick={onSave}
-          className="rounded-md bg-indigo-600 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-indigo-500"
+          className="rounded-lg bg-teal-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm ring-1 ring-teal-500/30 transition hover:bg-teal-500"
         >
-          Save
+          Сохранить
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 hover:bg-slate-50"
+          className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600 transition hover:bg-slate-50"
         >
-          Cancel
+          Отмена
         </button>
       </div>
     );
@@ -75,23 +78,27 @@ function RowActionButtons({
       <button
         type="button"
         onClick={onEdit}
-        className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50"
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition hover:border-teal-200 hover:bg-teal-50/50"
       >
-        Edit
+        Правка
       </button>
       <button
         type="button"
         disabled={!canCopy}
         onClick={onCopy}
-        className="rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-medium text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        {copyFlash ? "Copied" : "Copy"}
+        {copyFlash ? "Скопировано" : "Копировать"}
       </button>
     </div>
   );
 }
 
-export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
+export function PassportDataTable({
+  rows,
+  resetKey,
+  onOverridesChange,
+}: PassportDataTableProps) {
   const [overrides, setOverrides] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -102,6 +109,10 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
     setEditingId(null);
     setDraft("");
   }, [resetKey]);
+
+  useEffect(() => {
+    onOverridesChange?.(overrides);
+  }, [overrides, onOverridesChange]);
 
   const startEdit = (row: PassportFieldRow) => {
     setEditingId(row.id);
@@ -141,20 +152,20 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
 
   if (rows.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 px-4 py-8 text-center text-sm text-slate-500">
-        No field data yet. Process a document to review and edit translations.
+      <div className="surface-card-muted border-dashed border-slate-300/80 px-4 py-10 text-center text-sm text-slate-500">
+        Данных полей пока нет. Обработайте документ, чтобы проверить и править перевод.
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-slate-200/90 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-4 py-2.5">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-          Review &amp; correct translations
+    <div className="surface-card overflow-hidden">
+      <div className="border-b border-slate-100/90 bg-gradient-to-r from-white to-teal-50/30 px-4 py-3 sm:px-5">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-teal-700/90">
+          Переводы
         </h2>
-        <p className="text-[13px] text-slate-600">
-          Original OCR reference · edit translated column as needed
+        <p className="mt-0.5 text-sm text-slate-600">
+          Оригинал (OCR) · отредактируйте колонку перевода при необходимости
         </p>
       </div>
 
@@ -168,13 +179,19 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
             <col className="w-[14%]" />
           </colgroup>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-50/90">
-              <th className="px-3 py-2 font-semibold text-slate-600">Field</th>
-              <th className="px-3 py-2 font-semibold text-slate-600">Original</th>
-              <th className="border-l border-slate-100 bg-indigo-50/40 px-3 py-2 font-semibold text-indigo-950">
-                Translated
+            <tr className="border-b border-slate-200 bg-slate-50/80">
+              <th className="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                Поле
               </th>
-              <th className="px-2 py-2 text-center font-semibold text-slate-600">Actions</th>
+              <th className="px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-slate-500">
+                Оригинал
+              </th>
+              <th className="border-l border-teal-100/80 bg-teal-50/50 px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-teal-900">
+                Перевод
+              </th>
+              <th className="px-2 py-2.5 text-center text-xs font-bold uppercase tracking-wider text-slate-500">
+                Действия
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -197,8 +214,8 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span className="font-medium text-slate-800">{row.label}</span>
                       {edited ? (
-                        <span className="rounded bg-amber-100/90 px-1 py-0 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                          Edited
+                        <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-900 ring-1 ring-amber-200/80">
+                          Изменено
                         </span>
                       ) : null}
                     </div>
@@ -206,14 +223,14 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
                   <td className="px-3 py-1.5 break-words text-slate-600 whitespace-pre-wrap">
                     {row.original ?? "—"}
                   </td>
-                  <td className="border-l border-indigo-100/80 bg-indigo-50/20 px-3 py-1.5">
+                  <td className="border-l border-teal-100/70 bg-teal-50/25 px-3 py-1.5">
                     {isEditing ? (
                       useTa ? (
                         <textarea
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
                           rows={Math.min(6, Math.max(2, draft.split("\n").length))}
-                          className="w-full resize-y rounded-md border border-indigo-200 bg-white px-2 py-1 text-[13px] text-slate-900 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                          className="w-full resize-y rounded-lg border border-teal-200 bg-white px-2 py-1.5 text-[13px] text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                           autoFocus
                         />
                       ) : (
@@ -221,7 +238,7 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
                           type="text"
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
-                          className="w-full rounded-md border border-indigo-200 bg-white px-2 py-1 text-[13px] text-slate-900 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+                          className="w-full rounded-lg border border-teal-200 bg-white px-2 py-1.5 text-[13px] text-slate-900 shadow-sm focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                           autoFocus
                         />
                       )
@@ -270,23 +287,23 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
                 <span className="text-sm font-semibold text-slate-800">{row.label}</span>
                 {edited ? (
-                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-900">
-                    Edited
+                  <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-amber-900 ring-1 ring-amber-200/80">
+                    Изменено
                   </span>
                 ) : null}
               </div>
               <div className="mt-2 space-y-2 text-[13px]">
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-                    Original
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Оригинал
                   </div>
                   <div className="mt-0.5 break-words text-slate-600 whitespace-pre-wrap">
                     {row.original ?? "—"}
                   </div>
                 </div>
-                <div className="rounded-md bg-indigo-50/50 px-2 py-1.5">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-indigo-800">
-                    Translated
+                <div className="rounded-xl bg-teal-50/50 px-2.5 py-2 ring-1 ring-teal-100/60">
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-teal-900">
+                    Перевод
                   </div>
                   <div className="mt-1">
                     {isEditing ? (
@@ -295,14 +312,14 @@ export function PassportDataTable({ rows, resetKey }: PassportDataTableProps) {
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
                           rows={4}
-                          className="w-full resize-y rounded border border-indigo-200 bg-white px-2 py-1 text-[13px]"
+                          className="w-full resize-y rounded-lg border border-teal-200 bg-white px-2 py-1.5 text-[13px] focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                         />
                       ) : (
                         <input
                           type="text"
                           value={draft}
                           onChange={(e) => setDraft(e.target.value)}
-                          className="w-full rounded border border-indigo-200 bg-white px-2 py-1 text-[13px]"
+                          className="w-full rounded-lg border border-teal-200 bg-white px-2 py-1.5 text-[13px] focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                         />
                       )
                     ) : (

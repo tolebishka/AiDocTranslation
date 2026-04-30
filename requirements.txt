@@ -6,4 +6,5 @@ httpx
 openai
 python-dotenv
 docxtpl
+python-docx
 google-cloud-vision

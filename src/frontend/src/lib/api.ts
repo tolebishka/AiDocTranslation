@@ -1,5 +1,8 @@
 import type {
+  GenerateDocumentRequest,
+  GenerateDocumentResponse,
   ProcessDocumentResponse,
+  TemplateInfo,
   UploadResponse,
 } from "../types/api";
 
@@ -76,4 +79,43 @@ export async function processDocument(
   }
 
   return res.json() as Promise<ProcessDocumentResponse>;
+}
+
+/**
+ * GET /generate-document/templates — discover .docx templates.
+ * Pass an ISO-3 country code (or the issuing country name from OCR) to
+ * narrow the list to templates that match.
+ */
+export async function listTemplates(country?: string | null): Promise<TemplateInfo[]> {
+  const url = country && country.trim()
+    ? `/generate-document/templates?country=${encodeURIComponent(country.trim())}`
+    : "/generate-document/templates";
+
+  const res = await fetch(joinUrl(url), { method: "GET" });
+  if (!res.ok) throw new Error(await readErrorMessage(res));
+  return res.json() as Promise<TemplateInfo[]>;
+}
+
+/**
+ * POST /generate-document/ — render a template against the canonical
+ * extraction + primary-language overrides. Returns a download_url that the
+ * client can use to fetch the rendered .docx.
+ */
+export async function generateDocument(
+  payload: GenerateDocumentRequest
+): Promise<GenerateDocumentResponse> {
+  const res = await fetch(joinUrl("/generate-document/"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) throw new Error(await readErrorMessage(res));
+  return res.json() as Promise<GenerateDocumentResponse>;
+}
+
+/** Absolute URL for an issued ``download_url`` so <a download> works on dev. */
+export function buildDownloadUrl(downloadUrl: string): string {
+  if (/^https?:/i.test(downloadUrl)) return downloadUrl;
+  return joinUrl(downloadUrl);
 }

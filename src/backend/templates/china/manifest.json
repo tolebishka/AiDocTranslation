@@ -1,0 +1,17 @@
+{
+  "id": "china_public_relations",
+  "country_code": "CHN",
+  "country_aliases": ["China", "Китай", "ҚЫТАЙ", "ЦЗЯНСИ", "PEKING", "BEIJING"],
+  "name": {
+    "Russian": "Китай — паспорт (RU + KZ)",
+    "Kazakh": "Қытай — төлқұжат (RU + KZ)",
+    "English": "China — passport (RU + KZ)"
+  },
+  "description": "Двуязычный перевод заграничного паспорта КНР (русский + казахский)",
+  "languages": [
+    { "code": "ru", "name": "Russian" },
+    { "code": "kz", "name": "Kazakh" }
+  ],
+  "file": "template.docx",
+  "version": "1.0.0"
+}

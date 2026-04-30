@@ -38,3 +38,10 @@ AZURE_DOCUMENT_INTELLIGENCE_KEY = get_env("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 # File storage (optional overrides)
 UPLOAD_DIR = get_env("UPLOAD_DIR") or str(_APP_ROOT / "storage" / "uploads")
 UPLOAD_TTL_SECONDS = int(get_env("UPLOAD_TTL_SECONDS", "600"))
+
+# Generated documents (rendered translations)
+GENERATED_DIR = get_env("GENERATED_DIR") or str(_APP_ROOT / "storage" / "generated")
+GENERATED_TTL_SECONDS = int(get_env("GENERATED_TTL_SECONDS", "300"))
+
+# Document templates directory (versioned in repo)
+TEMPLATES_DIR = get_env("TEMPLATES_DIR") or str(_APP_ROOT / "templates")

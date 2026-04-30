@@ -32,6 +32,7 @@ def normalize_text_date(date_str: str) -> Optional[str]:
     - 15 JUL 2024
     - 01/12/2021
     - 30-11-2031
+    - 25 03 2021 (space-separated DD MM YYYY, common on passport data pages)
     """
     if not date_str:
         return None
@@ -46,8 +47,14 @@ def normalize_text_date(date_str: str) -> Optional[str]:
         if month:
             return f"{year}-{month}-{int(day):02d}"
 
-    # Format: 01/12/2021 or 30-11-2031
-    match_numeric = re.match(r"^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$", date_str)
+    # Format: 25 03 2021 (ICAO-style printed dates)
+    match_space = re.match(r"^(\d{1,2})\s+(\d{1,2})\s+(\d{4})$", date_str)
+    if match_space:
+        day, month, year = match_space.groups()
+        return f"{year}-{int(month):02d}-{int(day):02d}"
+
+    # Format: 01/12/2021 or 30-11-2031 or 25.03.2021
+    match_numeric = re.match(r"^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$", date_str)
     if match_numeric:
         day, month, year = match_numeric.groups()
         return f"{year}-{int(month):02d}-{int(day):02d}"
@@ -79,6 +86,10 @@ def extract_labeled_value(lines: list[str], label_keywords: list[str]) -> Option
                     "PLACE OF BIRTH", "PLACE OF ISSUE",
                     "DATE OF ISSUE", "DATE OF EXPIRATION", "DATE OF EXPIRY",
                     "AUTHORITY",
+                    "ФАМИЛИЯ", "ИМЯ", "ОТЧЕСТВО", "ПОЛ",
+                    "ДАТА РОЖДЕНИЯ", "ДАТА ВЫДАЧИ", "ДАТА ИСТЕЧЕНИЯ",
+                    "МЕСТО РОЖДЕНИЯ", "МЕСТО ВЫДАЧИ", "ОРГАН ВЫДАЧИ",
+                    "ПАСПОРТ", "ГРАЖДАНСТВО",
                 ]):
                     continue
 
@@ -129,15 +140,71 @@ def extract_issuing_authority(lines: list[str]) -> Optional[str]:
 
 
 def extract_date_of_issue(lines: list[str]) -> Optional[str]:
-    return extract_date_after_label(
-        lines,
-        [
-            "DATE OF ISSUE",
-            "DATE OF DÉLIV",
-            "FECHA DE EXPED",
-            "जारी करने की तिथि",
-        ],
+    """OCR date of issue: English labels first (passport data page is often English).
+
+    Handles same-line values (``Date of issue: 25.03.2021``), ``Issue date``, and
+    labeled next-line blocks; then Russian / Uzbek fallbacks.
+    """
+    issue_label = re.compile(
+        r"(?i)\b(date\s+of\s+issue|issue\s+date|date\s+issued)\b"
     )
+    date_compact = re.compile(r"(\d{1,2}[./\-]\d{1,2}[./\-]\d{4})")
+    date_spaced = re.compile(r"(\d{1,2}\s+\d{1,2}\s+\d{4})")
+    date_text_month = re.compile(r"(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})", re.IGNORECASE)
+
+    def _norm_from_match(m: re.Match[str]) -> Optional[str]:
+        raw = re.sub(r"\s+", " ", m.group(1).strip()).upper()
+        return normalize_text_date(raw)
+
+    for i, line in enumerate(lines):
+        if not issue_label.search(line):
+            continue
+        for cre in (date_compact, date_spaced, date_text_month):
+            m = cre.search(line)
+            if m:
+                n = _norm_from_match(m)
+                if n:
+                    return n
+        for j in range(i + 1, min(i + 5, len(lines))):
+            chunk = lines[j]
+            for cre in (date_compact, date_spaced, date_text_month):
+                m = cre.search(chunk)
+                if m:
+                    n = _norm_from_match(m)
+                    if n:
+                        return n
+
+    label_keywords = [
+        "DATE OF ISSUE",
+        "ISSUE DATE",
+        "DATE ISSUED",
+        "DATE OF DÉLIV",
+        "FECHA DE EXPED",
+        "जारी करने की तिथि",
+        "ДАТА ВЫДАЧИ",
+        "ДАТА ВЫПУСКУ",
+        "BERILGAN SANA",
+        "BERILGAN SANASI",
+    ]
+    parsed = extract_date_after_label(lines, label_keywords)
+    if parsed:
+        return parsed
+
+    date_re = re.compile(
+        r"(\d{1,2}\s+\d{1,2}\s+\d{4}|\d{1,2}[./\-]\d{1,2}[./\-]\d{4}|\d{1,2}\s+[A-Za-z]{3}\s+\d{4})",
+        re.IGNORECASE,
+    )
+    for line in lines:
+        lu = line.upper()
+        if not any(k in lu for k in label_keywords):
+            continue
+        m = date_re.search(line)
+        if m:
+            raw = re.sub(r"\s+", " ", m.group(1).strip()).upper()
+            norm = normalize_text_date(raw)
+            if norm:
+                return norm
+    return None
 
 
 def build_passport_data(mrz_fields: dict | None, ocr_text: str) -> dict:

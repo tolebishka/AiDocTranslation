@@ -86,7 +86,12 @@ export function buildExtractionTableRows(
       original,
       translated: translatedVal,
     };
-  }).filter((row) => row.original !== null || row.translated !== null);
+  }).filter(
+    (row) =>
+      row.original !== null ||
+      row.translated !== null ||
+      row.id === "date_of_issue"
+  );
 }
 
 /** Effective translated text shown in UI (user override or server value). */
@@ -113,4 +118,22 @@ export function isTranslatedEdited(
 ): boolean {
   if (override === undefined) return false;
   return override.trim() !== (row.translated ?? "").trim();
+}
+
+/**
+ * Apply user-edited overrides (keyed by canonical field id) on top of the
+ * server-returned translated payload. Returns a new object with the same
+ * shape as `TranslatedPassportData` so it can be sent to the generation API.
+ */
+export function applyTableOverrides(
+  translated: TranslatedPassportData,
+  overrides: Record<string, string>
+): TranslatedPassportData {
+  const next: TranslatedPassportData = { ...translated };
+  for (const def of CANONICAL_FIELD_DEFINITIONS) {
+    const override = overrides[def.id];
+    if (override === undefined) continue;
+    (next as Record<string, unknown>)[def.translatedKey] = override;
+  }
+  return next;
 }

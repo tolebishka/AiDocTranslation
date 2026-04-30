@@ -1,0 +1,27 @@
+{
+  "id": "uzbekistan_passport",
+  "country_code": "UZB",
+  "country_aliases": ["Uzbekistan", "Узбекистан", "Өзбекстан", "Ўзбекистон", "TASHKENT", "ТАШКЕНТ"],
+  "name": {
+    "Russian": "Узбекистан — паспорт (RU + KZ)",
+    "Kazakh": "Өзбекстан — төлқұжат (RU + KZ)",
+    "English": "Uzbekistan — passport (RU + KZ)"
+  },
+  "description": "Двуязычный перевод паспорта Республики Узбекистан (русский + казахский)",
+  "languages": [
+    { "code": "ru", "name": "Russian" },
+    { "code": "kz", "name": "Kazakh" }
+  ],
+  "formatting": {
+    "uppercase_text": true,
+    "date_style": "dd.mm.yyyy",
+    "sex_letter_style": "ru",
+    "expand_mvd_authority": true,
+    "nationality_display": {
+      "ru": "УЗБЕКИСТАН",
+      "kz": "ӨЗБЕКСТАН"
+    }
+  },
+  "file": "template.docx",
+  "version": "1.0.0"
+}

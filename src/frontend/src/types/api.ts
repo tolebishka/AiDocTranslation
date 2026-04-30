@@ -118,3 +118,33 @@ export type ProcessDocumentResponse = {
 export type ApiErrorBody = {
   detail?: string | { msg?: string }[] | string;
 };
+
+/** A document template registered on the backend (manifest.json on disk). */
+export type TemplateLanguageInfo = {
+  code: string;
+  name: string;
+};
+
+export type TemplateInfo = {
+  id: string;
+  country_code?: string | null;
+  country_aliases?: string[];
+  name?: Record<string, string>;
+  description?: string;
+  languages: TemplateLanguageInfo[];
+  version?: string;
+};
+
+export type GenerateDocumentRequest = {
+  template_id: string;
+  extraction: ExtractionResult;
+  primary_language?: string | null;
+  primary_overrides?: TranslatedPassportData | null;
+};
+
+export type GenerateDocumentResponse = {
+  document_id: string;
+  template_id: string;
+  download_url: string;
+  filename: string;
+};

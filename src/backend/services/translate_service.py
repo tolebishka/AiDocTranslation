@@ -84,7 +84,7 @@ Translate this passport data:
 Rules:
 - Translate values, not keys.
 - Keep passport_number unchanged.
-- Keep date_of_birth, date_of_issue, date_of_expiry unchanged.
+- Keep date_of_birth, date_of_issue, date_of_expiry exactly as in the input (YYYY-MM-DD). If a date is null in the input, return null for that field.
 - Convert sex:
   - M -> appropriate translation for Male
   - F -> appropriate translation for Female
@@ -116,3 +116,26 @@ Rules:
 
     content = response.choices[0].message.content
     return json.loads(content)
+
+
+def translate_passport_data_multi(
+    passport_data: Dict[str, Any],
+    target_languages: list[str],
+) -> Dict[str, Dict[str, Any]]:
+    """Translate the same passport payload into multiple target languages.
+
+    Returns a mapping ``{ language_name: translated_payload }``. Languages are
+    processed sequentially; failures for one language do not abort the others
+    (the failing language is simply omitted from the result).
+    """
+    out: Dict[str, Dict[str, Any]] = {}
+    seen: set[str] = set()
+    for lang in target_languages:
+        if not lang or lang in seen:
+            continue
+        seen.add(lang)
+        try:
+            out[lang] = translate_passport_data(passport_data, lang)
+        except Exception:
+            continue
+    return out

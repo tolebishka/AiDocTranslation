@@ -23,6 +23,7 @@ htmlcov/
 # App data / uploads (local dev)
 uploads/
 src/backend/storage/uploads/
+src/backend/storage/generated/
 
 # Credentials (never commit)
 **/aidoc.json
