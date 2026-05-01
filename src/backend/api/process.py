@@ -43,7 +43,8 @@ async def process_document(request: ProcessDocumentRequest):
         if not mrz_fields:
             raise AppError(
                 "no_mrz_detected",
-                "We couldn't detect the document zone. Please take a clearer photo",
+                "We couldn't read the machine-readable zone (MRZ) at the bottom of the page. "
+                "Avoid glare, keep the full two MRZ lines in frame, and try again.",
                 422,
             )
 

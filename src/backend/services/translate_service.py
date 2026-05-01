@@ -71,6 +71,9 @@ def translate_passport_data(passport_data: Dict[str, Any], target_language: str)
         "Preserve dates exactly as YYYY-MM-DD. "
         "Preserve passport numbers exactly. "
         "If a field is null, return null. "
+        "Exception: sex_translated must always be the single Cyrillic letter "
+        "М (male) or Ж (female), never translated to the target language "
+        "(not English, not localized words—only М or Ж). "
         "Return only valid JSON that matches the schema."
     )
 
@@ -85,9 +88,11 @@ Rules:
 - Translate values, not keys.
 - Keep passport_number unchanged.
 - Keep date_of_birth, date_of_issue, date_of_expiry exactly as in the input (YYYY-MM-DD). If a date is null in the input, return null for that field.
-- Convert sex:
-  - M -> appropriate translation for Male
-  - F -> appropriate translation for Female
+- sex_translated (field name in JSON is historical): always output exactly one Cyrillic letter, for every target_language:
+  - Male / M (and typical male equivalents in any language) -> М (Cyrillic em)
+  - Female / F (and typical female equivalents) -> Ж (Cyrillic zhe)
+  - Do not use Latin M/F, do not spell \"male\"/\"female\" or any other language's words for sex—only М or Ж.
+  - If sex is missing, unknown, or null in the input, return null for sex_translated.
 - document_type "P" should be translated as the natural target-language word for "Passport".
 - issuing_country should be translated as the country name.
 - nationality should be translated as nationality/citizenship, not simply copied from issuing_country.

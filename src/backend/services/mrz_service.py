@@ -10,6 +10,23 @@ def normalize_mrz_line(line: str) -> str:
     return line
 
 
+# Second char of TD3 line 1 should be '<'; Vision often reads it as O, 0, C, etc.
+_OCR_P_FILLER_SUBSTITUTES = frozenset("O0CQDG")
+
+
+def repair_passport_line1_prefix(line: str) -> str:
+    """
+    Fix common OCR mistakes at the start of TD3 line 1 (P<issuing_state...).
+    """
+    if len(line) < 40 or line[0] != "P":
+        return line
+    if line[1] == "<":
+        return line
+    if line[1] in _OCR_P_FILLER_SUBSTITUTES and line[2:5].isalpha():
+        return "P<" + line[2:]
+    return line
+
+
 def extract_mrz_lines(raw_text: str) -> Optional[tuple[str, str]]:
     """
     Try to extract 2 MRZ lines for TD3 passport format.
@@ -18,13 +35,24 @@ def extract_mrz_lines(raw_text: str) -> Optional[tuple[str, str]]:
     lines = [normalize_mrz_line(line) for line in raw_text.splitlines()]
     lines = [line for line in lines if line]
 
-    for i in range(len(lines) - 1):
-        line1 = lines[i]
-        line2 = lines[i + 1]
-
-        # Relaxed detection because OCR may slightly break exact length
+    def try_pair(idx1: int, idx2: int) -> Optional[tuple[str, str]]:
+        if idx1 < 0 or idx2 >= len(lines):
+            return None
+        line1 = repair_passport_line1_prefix(lines[idx1])
+        line2 = lines[idx2]
         if line1.startswith("P<") and len(line1) >= 40 and len(line2) >= 40:
             return line1[:44].ljust(44, "<"), line2[:44].ljust(44, "<")
+        return None
+
+    for i in range(len(lines) - 1):
+        pair = try_pair(i, i + 1)
+        if pair:
+            return pair
+        # One short noise line between the two MRZ rows (common in OCR layouts)
+        if i + 2 < len(lines) and len(lines[i + 1]) <= 8:
+            pair = try_pair(i, i + 2)
+            if pair:
+                return pair
 
     return None
 
@@ -54,21 +82,6 @@ def format_mrz_date(date_str: str, date_kind: str = "generic") -> str:
     else:
         year = 2000 + yy if yy <= 29 else 1900 + yy
 
-    return f"{year:04d}-{mm}-{dd}"
-    """
-    Convert YYMMDD to YYYY-MM-DD.
-    Simple heuristic:
-    - years 00-29 => 2000-2029
-    - years 30-99 => 1930-1999
-    """
-    if len(date_str) != 6 or not date_str.isdigit():
-        return date_str
-
-    yy = int(date_str[:2])
-    mm = date_str[2:4]
-    dd = date_str[4:6]
-
-    year = 2000 + yy if yy <= 29 else 1900 + yy
     return f"{year:04d}-{mm}-{dd}"
 
 
@@ -201,6 +214,7 @@ def parse_mrz_from_text(raw_text: str) -> Optional[dict]:
         return None
 
     line1, line2 = mrz_lines
+    line1 = repair_passport_line1_prefix(line1)
 
     if line1.startswith("P<"):
         return parse_td3_mrz(line1, line2)
