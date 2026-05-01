@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/node_modules
+**/dist
+htmlcov
+.coverage
+.env
+.env.*
+!.env.example
+src/backend/storage/uploads/**
+src/backend/storage/generated/**
+**/.DS_Store

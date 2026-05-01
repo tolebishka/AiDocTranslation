@@ -1,7 +1,7 @@
 """AiDocTranslation FastAPI backend."""
 
 import logging
-import time
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -110,11 +110,60 @@ app.include_router(generate_router)
 app.include_router(process_router)
 
 
-@app.get("/", tags=["Health"])
-async def root():
-    """Health check endpoint."""
+def _frontend_dist_dir() -> Path | None:
+    """Vite ``dist`` copied here in the Docker image (see repo Dockerfile)."""
+    p = Path(__file__).resolve().parent / "static"
+    if p.is_dir() and (p / "index.html").is_file():
+        return p
+    return None
+
+
+_frontend_dist = _frontend_dist_dir()
+
+
+@app.get("/health", tags=["Health"])
+async def health():
+    """Liveness/readiness probe (always JSON)."""
     return {
         "status": "running",
         "service": "AiDocTranslation",
         "version": "0.1.0",
     }
+
+
+if not _frontend_dist:
+
+    @app.get("/", tags=["Health"])
+    async def root():
+        """Local dev convenience; in Docker the SPA is served at ``/`` instead."""
+        return {
+            "status": "running",
+            "service": "AiDocTranslation",
+            "version": "0.1.0",
+        }
+
+
+if _frontend_dist:
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+
+    _dist = _frontend_dist.resolve()
+    _assets = _dist / "assets"
+    if _assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(_assets)), name="vite_assets")
+
+    @app.get("/", tags=["UI"], include_in_schema=False)
+    async def spa_index():
+        return FileResponse(_dist / "index.html")
+
+    @app.get("/{full_path:path}", tags=["UI"], include_in_schema=False)
+    async def spa_shell(full_path: str):
+        """Client-side routes (e.g. ``/privacy``): serve ``index.html`` if not a static file."""
+        candidate = (_dist / full_path).resolve()
+        try:
+            candidate.relative_to(_dist)
+        except ValueError:
+            return FileResponse(_dist / "index.html")
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_dist / "index.html")

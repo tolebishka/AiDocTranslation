@@ -6,14 +6,19 @@ import type {
   UploadResponse,
 } from "../types/api";
 
-/** Dev fallback when VITE_API_BASE_URL is unset. Production must set env. */
+/** Dev fallback when VITE_API_BASE_URL is unset. */
 const DEV_API_BASE = "http://127.0.0.1:8000";
 
 export function getApiBaseUrl(): string {
   const fromEnv = import.meta.env.VITE_API_BASE_URL?.trim();
-  return fromEnv && fromEnv.length > 0
-    ? fromEnv.replace(/\/$/, "")
-    : DEV_API_BASE;
+  if (fromEnv !== undefined && fromEnv.length > 0) {
+    return fromEnv.replace(/\/$/, "");
+  }
+  // Docker / single-host deploy: API and SPA share one origin
+  if (import.meta.env.PROD) {
+    return "";
+  }
+  return DEV_API_BASE;
 }
 
 function joinUrl(path: string): string {

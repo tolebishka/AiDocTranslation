@@ -1,0 +1,12 @@
+services:
+  web:
+    build: .
+    # Внутри контейнера всегда 8000. Снаружи — 8800, чтобы не пересекаться с
+    # другими проектами на :8000 (например «Hotel API»). Свой порт: "9000:8000".
+    ports:
+      - "8800:8000"
+    # Create from src/backend/.env.example — keys are read from the process environment
+    env_file:
+      - src/backend/.env
+    environment:
+      ENV: production

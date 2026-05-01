@@ -24,6 +24,8 @@ htmlcov/
 uploads/
 src/backend/storage/uploads/
 src/backend/storage/generated/
+# Vite dist copied here only in Docker image (local experiments)
+src/backend/static/
 
 # Credentials (never commit)
 **/aidoc.json

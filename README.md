@@ -54,7 +54,7 @@ source .venv/bin/activate
 PYTHONPATH=src uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Health check: open `http://127.0.0.1:8000/` in a browser or use `curl`.
+Health check (JSON): `http://127.0.0.1:8000/health` (or `GET /` in local dev without the Docker UI).
 
 Interactive docs: `http://127.0.0.1:8000/docs`
 
@@ -66,6 +66,27 @@ npm run dev
 ```
 
 Default dev server: `http://localhost:5173` (see `vite.config.ts`).
+
+## Docker (single container: API + static UI)
+
+Build embeds the Vite production bundle under `src/backend/static/` and serves it from the same port as FastAPI inside the container. Compose maps **host `8800` → container `8000`** so another stack (for example a different app on `localhost:8000`) does not hijack your browser tab.
+
+1. Copy `src/backend/.env.example` to `src/backend/.env` and fill in keys (`OPENAI_API_KEY`, Google Cloud Vision credentials, and any optional overrides).
+
+2. Build and run:
+
+```bash
+docker compose build
+docker compose up -d
+```
+
+3. Open **`http://localhost:8800/`** for the app, **`http://localhost:8800/health`** for a JSON health probe, **`http://localhost:8800/docs`** for OpenAPI.
+
+If you still see another project’s JSON (wrong API), you are on the wrong port or an old container is bound there — run `docker compose ps` in this repo and use the host port from `docker-compose.yml` (`ports:` left side).
+
+The container respects `PORT` if your host sets it (common on Railway, Fly.io, Render). For Google Vision using a JSON key file, set `GOOGLE_APPLICATION_CREDENTIALS` to a path inside the container and mount that file (see your platform’s “secrets” or bind-mount documentation).
+
+**Separate frontend + API:** build the image with `--build-arg VITE_API_BASE_URL=https://api.example.com` and set `CORS_ORIGINS` in production to your real UI origin (see `src/backend/core/config.py`).
 
 ## Technology stack
 
