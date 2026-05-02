@@ -379,7 +379,7 @@ def _mrz_display_richtext(mb: Dict[str, str]) -> str | RichText:
     for i, line in enumerate(lines):
         if i:
             rt.xml += "<w:r><w:br/></w:r>"
-        rt.add(line, font="Times New Roman", bold=True)
+        rt.add(line, font="Courier New", bold=True)
     return rt
 
 
